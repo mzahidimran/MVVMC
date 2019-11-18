@@ -37,7 +37,6 @@ class RemoteRepository: RepositoryProtocol {
         Alamofire.request(requestConverter).validate().responseObject { (response:DataResponse<T>) in
             switch response.result {
             case .success(let value):
-                print(value.toJSONString())
                 completion(value, nil)
             case .failure(let error):
                 completion(nil, error)
