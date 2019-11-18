@@ -11,13 +11,15 @@ import Observable
 
 class MovieCatalogViewController: UIViewController {
     
+    weak var coordinator:MovieCatalogCoordinatorDelegate?
+    
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var errorView: UIView!
     @IBOutlet weak var errorLabel: UILabel!
     @IBOutlet weak var loadingFooter: UILabel!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var pageRetryButton: UIButton!
-    var model: MovieCatalogVMProtocol = MovieCatalogVM()
+    var model: MovieCatalogVMProtocol!
     var disposal: Disposal = Disposal()
 
     override func viewDidLoad() {
@@ -69,12 +71,6 @@ class MovieCatalogViewController: UIViewController {
         }
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let movieDetailVC = segue.destination as? MovieDetailViewController {
-            movieDetailVC.movieID = model.movie(at: tableView.indexPathForSelectedRow?.row ?? 0).id.value
-        }
-    }
-    
     @IBAction func retryAction(_ sender: Any) {
         loadData()
     }
@@ -109,6 +105,10 @@ extension MovieCatalogViewController : UITableViewDelegate, UITableViewDataSourc
         else {
             self.loadingFooter.isHidden = true
         }
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        coordinator?.didSelect(movieVM: model.movie(at: indexPath.row))
     }
     
     

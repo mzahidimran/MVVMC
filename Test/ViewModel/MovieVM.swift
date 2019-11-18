@@ -81,20 +81,16 @@ protocol MovieVMProtocol {
     /**
     Load movie details
 
-    - Parameter movieID: Movie ID to fetch videos
-
     */
     
-    func load(movieID:Int) -> Void
+    func load() -> Void
     
     /**
     Get videos list available for movie ID.
 
-    - Parameter movieID: Movie ID to fetch videos
-
     */
     
-    func loadVideos(movieID:Int) -> Void
+    func loadVideos() -> Void
 }
 
 
@@ -166,11 +162,11 @@ class MovieVM: MovieVMProtocol {
         self._hasDataUpdates.value = true
     }
     
-    func load(movieID:Int) -> Void {
+    func load() -> Void {
         self._error.value = nil
         if _networkActivity.value == false {
             self._networkActivity.value = true
-            repository.getMovie(id: movieID) {[weak self] (result:Movie?, error) in
+            repository.getMovie(id:id.value) {[weak self] (result:Movie?, error) in
                 if let result = result {
                     self?.movie = result
                 }
@@ -183,8 +179,8 @@ class MovieVM: MovieVMProtocol {
     }
     
     
-    func loadVideos(movieID:Int) -> Void {
-        let _ = repository.getVideos(id: movieID) {[weak self] (result, error) in
+    func loadVideos() -> Void {
+        let _ = repository.getVideos(id:id.value) {[weak self] (result, error) in
             if let result = result {
                 self?._videos.value = result.results
             }

@@ -19,9 +19,8 @@ extension Notification.Name {
 
 class MovieDetailViewController: UIViewController {
     
-    var movieID:Int!
     var disposal:Disposal = Disposal()
-    let model: MovieVMProtocol = MovieVM()
+    var model: MovieVMProtocol!
     weak var playerViewController:AVPlayerViewController?
     
     
@@ -44,7 +43,7 @@ class MovieDetailViewController: UIViewController {
     }
     
     func loadData() -> Void {
-        model.load(movieID: movieID)
+        model.load()
     }
     
     func updateUI() -> Void {
@@ -196,7 +195,7 @@ class MovieDetailViewController: UIViewController {
         present(playerViewController, animated: true)
         self.playerViewController = playerViewController
         if model.videos.value.count == 0 {
-            model.loadVideos(movieID: movieID)
+            model.loadVideos()
         }
         else
         {
