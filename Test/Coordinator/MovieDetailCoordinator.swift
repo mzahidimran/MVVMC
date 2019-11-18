@@ -14,6 +14,15 @@ class MovieDetailCoordinator: BaseCoordinator {
     
     let navigationStack: NavigationStack
     
+    var model:MovieVMProtocol {
+        get {
+            return detailVC.model
+        }
+        set {
+            detailVC.model = newValue
+        }
+    }
+    
     weak private var videoPlayerCoordinator:AVPlayerControllerCoordinator?
     
     private lazy var detailVC: MovieDetailViewController = {
@@ -25,13 +34,9 @@ class MovieDetailCoordinator: BaseCoordinator {
         self.navigationStack = stack
     }
     
-    func start(_ model: MovieVMProtocol) {
-        detailVC.model = model
+    override func start() {
         detailVC.coordinator = self
-    }
-    
-    internal override func start() {
-        
+        navigationStack.push(self, isAnimated: true, onNavigateBack: didFinish)
     }
 }
 
@@ -42,14 +47,14 @@ extension MovieDetailCoordinator: Drawable {
 extension MovieDetailCoordinator: MovieDetailCoordinatorDelegate {
     
     func showVideoPlayer() {
-        let videoPlayerCoordinator = AVPlayerControllerCoordinator()
+        let videoPlayerCoordinator = AVPlayerControllerCoordinator(presenter: self.viewController!)
         self.videoPlayerCoordinator = videoPlayerCoordinator
         self.store(coordinator: videoPlayerCoordinator)
         videoPlayerCoordinator.didFinish = {[weak self, weak videoPlayerCoordinator] in
             guard let coordinator = videoPlayerCoordinator else { return }
             self?.free(coordinator: coordinator)
         }
-        videoPlayerCoordinator.start(presenter: self.viewController!)
+        videoPlayerCoordinator.start()
     }
     
     func doneWithVideoPlayer() {

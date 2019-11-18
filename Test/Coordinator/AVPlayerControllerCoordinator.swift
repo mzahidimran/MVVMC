@@ -17,6 +17,8 @@ class AVPlayerControllerCoordinator: BaseCoordinator {
         return playerVC
     }()
     
+    let presenter: UIViewController
+    
     var videoURL:URL? {
         didSet {
             guard let url = videoURL else {
@@ -28,17 +30,19 @@ class AVPlayerControllerCoordinator: BaseCoordinator {
         }
     }
     
-    func start(presenter: UIViewController) {
-        avplayerVC.didFinish = self.didFinish
-        presenter.present(avplayerVC, animated: true, completion: nil)
+    init(presenter: UIViewController) {
+        self.presenter = presenter
+        super.init()
     }
+
     
     func finish() -> Void {
         self.avplayerVC.dismiss(animated: true, completion:nil)
     }
     
-    internal override func start() {
+    override func start() {
         avplayerVC.didFinish = self.didFinish
+        presenter.present(avplayerVC, animated: true, completion: nil)
     }
     
 }

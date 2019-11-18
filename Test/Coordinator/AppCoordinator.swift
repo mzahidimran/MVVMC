@@ -25,11 +25,12 @@ class AppCoordinator: BaseCoordinator {
         let navigationStack = NavigationStack(navigationController: navigationController)
         let catalogCoordinator = MovieCatalogCoordinator(stack: navigationStack)
         self.store(coordinator: catalogCoordinator)
-        catalogCoordinator.start()
-        navigationStack.push(catalogCoordinator, isAnimated: true) { [weak self, weak catalogCoordinator] in
-            guard let `self` = self, let myCoordinator = catalogCoordinator else { return }
-            self.free(coordinator: myCoordinator)
+        catalogCoordinator.didFinish = {[weak self, weak catalogCoordinator] in
+            guard let coordinator = catalogCoordinator else { return }
+            self?.free(coordinator: coordinator)
         }
+        catalogCoordinator.start()
+        
         window.rootViewController = navigationStack.navigationController
         window.makeKeyAndVisible()
     }

@@ -29,16 +29,18 @@ class MovieCatalogCoordinator: BaseCoordinator {
     
     func showMovieDetail(vm: MovieVMProtocol) -> Void {
         let movieDetailCoordinator = MovieDetailCoordinator(stack: navigationStack)
-        movieDetailCoordinator.start(vm)
+        movieDetailCoordinator.model = vm
         self.store(coordinator: movieDetailCoordinator)
-        navigationStack.push(movieDetailCoordinator, isAnimated: true) { [weak self, weak movieDetailCoordinator] in
-            guard let `self` = self, let myCoordinator = movieDetailCoordinator else { return }
-            self.free(coordinator: myCoordinator)
+        movieDetailCoordinator.didFinish = {[weak self, weak movieDetailCoordinator] in
+            guard let coordinator = movieDetailCoordinator else { return }
+            self?.free(coordinator: coordinator)
         }
+        movieDetailCoordinator.start()
     }
     
     override func start() {
         catalogVC.coordinator = self
+        navigationStack.push(self, isAnimated: true, onNavigateBack: didFinish)
     }
 }
 
