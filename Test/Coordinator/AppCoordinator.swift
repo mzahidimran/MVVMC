@@ -9,27 +9,28 @@
 import Foundation
 import UIKit
 
-class AppCoordinator: CoordinatorProtocol {
+class AppCoordinator: BaseCoordinator {
     
-    var childCoordinators: [CoordinatorProtocol] = []
+    private let window: UIWindow
     
-    func addChild(child: CoordinatorProtocol) {
-        childCoordinators.append(child)
+    
+    init(window: UIWindow) {
+        self.window = window
+        super.init()
     }
     
-    var viewController: UIViewController?
-    
-    var parent: CoordinatorProtocol?
-    
-    private var window = UIWindow(frame: UIScreen.main.bounds)
-   
-    func start() {
-
-        var vc: CoordinatorProtocol = MovieCatalogCoordinator()
-        var rootCoordinator: CoordinatorProtocol = NavigationCoordinator(rootCoordinator: &vc)
-        addChild(child: rootCoordinator)
-        rootCoordinator.parent = self
-        window.rootViewController = rootCoordinator.viewController
+    override func start() {
+        
+        let navigationController = UINavigationController()
+        let navigationStack = NavigationStack(navigationController: navigationController)
+        let catalogCoordinator = MovieCatalogCoordinator(stack: navigationStack)
+        self.store(coordinator: catalogCoordinator)
+        catalogCoordinator.start()
+        navigationStack.push(catalogCoordinator, isAnimated: true) { [weak self, weak catalogCoordinator] in
+            guard let `self` = self, let myCoordinator = catalogCoordinator else { return }
+            self.free(coordinator: myCoordinator)
+        }
+        window.rootViewController = navigationStack.navigationController
         window.makeKeyAndVisible()
     }
     

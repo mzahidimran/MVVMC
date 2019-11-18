@@ -14,14 +14,21 @@ enum Storyboard: String {
 }
 
 
-protocol CoordinatorProtocol {
-    var parent:CoordinatorProtocol? { get set }
-    var viewController: UIViewController? { get }
-    var childCoordinators: [CoordinatorProtocol] { get }
-    func addChild(child: CoordinatorProtocol) -> Void
+protocol Coordinator: class {
+    var childCoordinators : [Coordinator] { get set }
     func start()
 }
 
+extension Coordinator {
+
+    func store(coordinator: Coordinator) {
+        childCoordinators.append(coordinator)
+    }
+
+    func free(coordinator: Coordinator) {
+        childCoordinators = childCoordinators.filter { $0 !== coordinator }
+    }
+}
 
 
 

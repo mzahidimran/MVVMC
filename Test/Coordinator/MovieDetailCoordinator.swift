@@ -10,18 +10,53 @@ import Foundation
 import UIKit
 
 
-class MovieDetailCoordinator: BaseViewControllerCoordinator {
+class MovieDetailCoordinator: BaseCoordinator {
     
-    private var catalogVC: MovieDetailViewController?
+    let navigationStack: NavigationStack
     
-    override var viewController: UIViewController? {
-        return catalogVC
+    weak private var videoPlayerCoordinator:AVPlayerControllerCoordinator?
+    
+    private lazy var detailVC: MovieDetailViewController = {
+        let detailVC = UIStoryboard(name: Storyboard.Main.rawValue, bundle: nil).instantiateViewController(withIdentifier: "MovieDetailViewController") as! MovieDetailViewController
+        return detailVC
+    }()
+    
+    init(stack: NavigationStack) {
+        self.navigationStack = stack
     }
     
-    init(model: MovieVMProtocol) {
-        catalogVC = UIStoryboard(name: Storyboard.Main.rawValue, bundle: nil).instantiateViewController(withIdentifier: "MovieDetailViewController") as? MovieDetailViewController
-        catalogVC?.model = model
+    func start(_ model: MovieVMProtocol) {
+        detailVC.model = model
+        detailVC.coordinator = self
     }
     
+    internal override func start() {
+        
+    }
+}
+
+extension MovieDetailCoordinator: Drawable {
+    var viewController: UIViewController? { return detailVC }
+}
+
+extension MovieDetailCoordinator: MovieDetailCoordinatorDelegate {
     
+    func showVideoPlayer() {
+        let videoPlayerCoordinator = AVPlayerControllerCoordinator()
+        self.videoPlayerCoordinator = videoPlayerCoordinator
+        self.store(coordinator: videoPlayerCoordinator)
+        videoPlayerCoordinator.didFinish = {[weak self, weak videoPlayerCoordinator] in
+            guard let coordinator = videoPlayerCoordinator else { return }
+            self?.free(coordinator: coordinator)
+        }
+        videoPlayerCoordinator.start(presenter: self.viewController!)
+    }
+    
+    func doneWithVideoPlayer() {
+        videoPlayerCoordinator?.finish()
+    }
+    
+    func videoPlayerAddVideo(videoURL: URL) -> Void {
+        videoPlayerCoordinator?.videoURL = videoURL
+    }
 }

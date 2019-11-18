@@ -17,11 +17,17 @@ extension Notification.Name {
      static let argentina = Notification.Name("argentina")
 }
 
+protocol MovieDetailCoordinatorDelegate: class {
+    func showVideoPlayer() -> Void
+    func doneWithVideoPlayer() -> Void
+    func videoPlayerAddVideo(videoURL: URL) -> Void
+}
+
 class MovieDetailViewController: UIViewController {
     
     var disposal:Disposal = Disposal()
     var model: MovieVMProtocol!
-    weak var playerViewController:AVPlayerViewController?
+    weak var coordinator: MovieDetailCoordinatorDelegate?
     
     
     @IBOutlet weak var scrollView: UIScrollView!
@@ -64,27 +70,27 @@ class MovieDetailViewController: UIViewController {
     
     func addObserver() -> Void {
         
-        model.title.observe { (newValue, oldValue) in
-            self.titleLabel.text = newValue
+        model.title.observe {[weak self] (newValue, oldValue) in
+            self?.titleLabel.text = newValue
         }.add(to: &disposal)
         
-        model.bannerURl.observe { (newValue, oldValue) in
+        model.bannerURl.observe {[weak self] (newValue, oldValue) in
             if let bannerURL = newValue
             {
-                self.bannerImageView.af_setImage(withURL: bannerURL, placeholderImage: #imageLiteral(resourceName: "placeholder"))
+                self?.bannerImageView.af_setImage(withURL: bannerURL, placeholderImage: #imageLiteral(resourceName: "placeholder"))
             }
         }.add(to: &disposal)
         
-        model.overview.observe { (newValue, oldValue) in
-            self.overviewLabel.text = newValue
+        model.overview.observe {[weak self] (newValue, oldValue) in
+            self?.overviewLabel.text = newValue
         }.add(to: &disposal)
         
-        model.releaseDate.observe { (newValue, oldValue) in
-            self.releaseDateLabel.text = newValue
+        model.releaseDate.observe {[weak self] (newValue, oldValue) in
+            self?.releaseDateLabel.text = newValue
         }.add(to: &disposal)
         
-        model.genre.observe { (newValue, oldValue) in
-            self.genreLabel.text = newValue
+        model.genre.observe {[weak self] (newValue, oldValue) in
+            self?.genreLabel.text = newValue
         }.add(to: &disposal)
         
         model.hasDataUpdates.observe {[weak self] (value, _ ) in
@@ -111,7 +117,7 @@ class MovieDetailViewController: UIViewController {
                 self?.proceedVideo(video: youtubeVideos.first!)
             }
             else {
-                self?.playerViewController?.dismiss(animated: true, completion: nil)
+                self?.coordinator?.doneWithVideoPlayer()
             }
             }.add(to: &disposal)
         
@@ -140,15 +146,14 @@ class MovieDetailViewController: UIViewController {
     }
     
     func showVideoError(error:Error) -> Void {
-        self.playerViewController?.dismiss(animated: true, completion: {[weak self] in
-            let alertController = UIAlertController(title: "Alert", message: error.localizedDescription, preferredStyle: .alert)
-            
-            alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: {[weak alertController] (action) in
-                alertController?.dismiss(animated: true, completion: nil)
-            }))
-            
-            self?.present(alertController, animated: true, completion: nil)
-        })
+        self.coordinator?.doneWithVideoPlayer()
+        let alertController = UIAlertController(title: "Alert", message: error.localizedDescription, preferredStyle: .alert)
+        
+        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: {[weak alertController] (action) in
+            alertController?.dismiss(animated: true, completion: nil)
+        }))
+        
+        self.present(alertController, animated: true, completion: nil)
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -168,32 +173,20 @@ class MovieDetailViewController: UIViewController {
                 let streamURL = streamURLs?[XCDYouTubeVideoQuality.HD720.rawValue] ?? streamURLs?[XCDYouTubeVideoQuality.medium360.rawValue] ?? streamURLs?[XCDYouTubeVideoQuality.small240.rawValue]
                 
                 if let streamURL = streamURL {
-                    let player = AVPlayer(url: streamURL)
-                    self?.playerViewController?.player = player
-                    if #available(iOS 11.0, *) {
-                        self?.playerViewController?.exitsFullScreenWhenPlaybackEnds = true
-                    } else {
-                        if let detailVC = self {
-                            NotificationCenter.default.addObserver(detailVC, selector: #selector(MovieDetailViewController.playbackFinished),
-                                                                   name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player.currentItem)
-                        }
-                    }
+                    self?.coordinator?.videoPlayerAddVideo(videoURL: streamURL)
                 }
-                self?.playerViewController?.player?.play()
             } else {
-                self?.playerViewController?.dismiss(animated: true, completion: nil)
+                self?.coordinator?.doneWithVideoPlayer()
             }
         })
     }
     
     @objc func playbackFinished() -> Void {
-        self.playerViewController?.dismiss(animated: true, completion: nil)
+        self.coordinator?.doneWithVideoPlayer()
     }
     
     @IBAction func watchTrailerAction(_ sender: Any) {
-        let playerViewController = AVPlayerViewController()
-        present(playerViewController, animated: true)
-        self.playerViewController = playerViewController
+        self.coordinator?.showVideoPlayer()
         if model.videos.value.count == 0 {
             model.loadVideos()
         }
