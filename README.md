@@ -1,6 +1,6 @@
 # MovieCatalog
 
-Its a demo project with MVVM + Network Layer. 
+Its a demo project with MVVM + Coordinators
 
 
 # Screenshots
