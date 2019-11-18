@@ -15,7 +15,7 @@ protocol MovieCatalogCoordinatorDelegate: class {
 
 class MovieCatalogCoordinator: BaseCoordinator {
     
-    let navigationStack: NavigationStack
+    private let navigationStack: NavigationStack
     
     private lazy var catalogVC: MovieCatalogViewController = {
         let catalogVC = UIStoryboard(name: Storyboard.Main.rawValue, bundle: nil).instantiateViewController(withIdentifier: "MovieCatalogViewController") as! MovieCatalogViewController
@@ -27,7 +27,7 @@ class MovieCatalogCoordinator: BaseCoordinator {
         self.navigationStack = stack
     }
     
-    func showMovieDetail(vm: MovieVMProtocol) -> Void {
+    private func showMovieDetail(vm: MovieVMProtocol) -> Void {
         let movieDetailCoordinator = MovieDetailCoordinator(stack: navigationStack)
         movieDetailCoordinator.model = vm
         self.store(coordinator: movieDetailCoordinator)

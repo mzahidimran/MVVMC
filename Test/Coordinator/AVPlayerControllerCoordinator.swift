@@ -17,7 +17,7 @@ class AVPlayerControllerCoordinator: BaseCoordinator {
         return playerVC
     }()
     
-    let presenter: UIViewController
+    private let presenter: UIViewController
     
     var videoURL:URL? {
         didSet {

@@ -12,7 +12,7 @@ import UIKit
 
 class MovieDetailCoordinator: BaseCoordinator {
     
-    let navigationStack: NavigationStack
+    private let navigationStack: NavigationStack
     
     var model:MovieVMProtocol {
         get {
@@ -46,7 +46,7 @@ extension MovieDetailCoordinator: Drawable {
 
 extension MovieDetailCoordinator: MovieDetailCoordinatorDelegate {
     
-    func showVideoPlayer() {
+    internal func showVideoPlayer() {
         let videoPlayerCoordinator = AVPlayerControllerCoordinator(presenter: self.viewController!)
         self.videoPlayerCoordinator = videoPlayerCoordinator
         self.store(coordinator: videoPlayerCoordinator)
@@ -57,11 +57,11 @@ extension MovieDetailCoordinator: MovieDetailCoordinatorDelegate {
         videoPlayerCoordinator.start()
     }
     
-    func doneWithVideoPlayer() {
+    internal func doneWithVideoPlayer() {
         videoPlayerCoordinator?.finish()
     }
     
-    func videoPlayerAddVideo(videoURL: URL) -> Void {
+    internal func videoPlayerAddVideo(videoURL: URL) -> Void {
         videoPlayerCoordinator?.videoURL = videoURL
     }
 }
