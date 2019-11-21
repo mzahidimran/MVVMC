@@ -107,22 +107,20 @@ class MovieCatalogVM: MovieCatalogVMProtocol {
     }
     
     var moviesCount: Int {
-        return movies.count
+        return movies.elements.count
     }
     
     private var source:[Movie] = [] {
         didSet {
-            if filter.count == 0 {
-                movies = source
+            movies.clean(andAppend: source) {[weak self] in
+                DispatchQueue.main.async {
+                    self?._moviesUpdated.value = true
+                }
             }
         }
     }
     
-    private var movies:[Movie] = [] {
-        didSet {
-            _moviesUpdated.value = true
-        }
-    }
+    private var movies:ThreadSafeCollection<Movie> = ThreadSafeCollection<Movie>()
     
     private var _moviesUpdated:Observable<Bool> = Observable<Bool>(false)
     lazy var moviesUpdated: ImmutableObservable<Bool> = _moviesUpdated
@@ -144,7 +142,7 @@ class MovieCatalogVM: MovieCatalogVMProtocol {
     }
     
     func movie(at index: Int) -> MovieVMProtocol  {
-        return MovieVM(movie: movies[index])
+        return MovieVM(movie: movies.elements[index])
     }
     
     func load(page:Int) -> Void {
@@ -181,10 +179,18 @@ class MovieCatalogVM: MovieCatalogVMProtocol {
     private func applyFilter(){
         if isSearching
         {
-            self.movies = self.source.filter { $0.title.localizedCaseInsensitiveContains(filter) }
+            self.movies.clean(andAppend: self.source.filter { $0.title.localizedCaseInsensitiveContains(filter) }) {[weak self] in
+                DispatchQueue.main.async {
+                    self?._moviesUpdated.value = true
+                }
+            }
         }
         else {
-            self.movies = self.source
+            self.movies.clean(andAppend: self.source) { [weak self] in
+                DispatchQueue.main.async {
+                    self?._moviesUpdated.value = true
+                }
+            }
         }
     }
     
