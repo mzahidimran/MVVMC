@@ -12,14 +12,55 @@
 var position = Observable(CGPoint.zero)
 ```
 
-### Create Observer and ImmutableObserver 
+### Create an ImmutableObservable 
+Using `ImmutableObservable` we can create an "readonly"-Observable, in order to avoid side-effects on our internal API. 
 
 ```swift
-var position = Observable(CGPoint.zero)
-var immutablePosition: ImmutableObservable<CGPoint> = position 
-// With an ImmutableObservable the value can't be changed, only read or observe it's value changes
+class SomeViewModel {
+    /// Public property, that can be read / observed by external classes (e.g. view controller), but not changed.
+    var position: ImmutableObservable<CGPoint> = {
+        return positionSubject
+    }
+    // Or use the helper method Observable.asImmutable()
+    // lazy var position = positionSubject.asImmutable()
+
+    /// Private property, that can be changed / observed inside this view model.
+    private let positionSubject = Observable(CGPoint.zero)
+}
 ```
 
+### Create Observer with custom onDispose functionality
+
+In some cases Observables require resources while they're active that must be cleaned up when they're disposed of.  To handle such cases you can pass an optional block to the Observable initializer to be executed when the Observable is disposed of.
+
+```swift
+url.startAccessingSecurityScopedResource()
+let observable = Observable([URL]()) {
+    url.stopAccessingSecurityScopedResource()
+}
+```
+
+### Model Properties as @Observable
+
+Now mark your binded/mapped properties as observable and export public obserable
+
+```swift
+//Private Observer
+@Observable var text: String = "Test"
+
+//add observer
+
+_text.observe { (newValue, oldValue) in
+            print(newValue)
+        }.add(to: &disposable)
+        
+//Public Observer
+
+var textObserve:ImmutableObservable<String> {
+        return _text
+    }
+
+```
 ### Add an observer
 
 ```swift
@@ -72,15 +113,6 @@ it, simply add the following line to your Podfile:
 
 ```ruby
 pod 'Observable'
-```
-
-### Carthage
-
-**Observable** is available through [Carthage](https://github.com/Carthage/Carthage). To install
-it, simply add the following line to your Cartfile:
-
-```ruby
-github "roberthein/Observable" "master"
 ```
 
 ## Suggestions or feedback?

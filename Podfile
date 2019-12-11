@@ -6,7 +6,7 @@ target 'Test' do
   use_frameworks!
 
   # Pods for Test
-	pod 'Observable'
+    pod 'Observable', :git => 'git@github.com:mzahidimran/Observable.git', :branch => 'PropertyWrapper'
     pod 'ObjectMapper'
     pod 'Alamofire'
     pod 'AlamofireObjectMapper'
