@@ -98,11 +98,11 @@ class MovieVM: MovieVMProtocol {
     
     private let repository: MovieRepositoryProtocol
     
-    private var _videos:Observable<[VideoModelProtocol]> = Observable<[VideoModelProtocol]>([])
-    lazy var videos: ImmutableObservable<[VideoModelProtocol]> = _videos
+    @Observable private var _videos:[VideoModelProtocol] = []
+    lazy private(set) var videos: ImmutableObservable<[VideoModelProtocol]> = __videos
     
-    private var _errorVideos:Observable<Error?> = Observable<Error?>(nil)
-    lazy var errorVideos: ImmutableObservable<Error?> = _errorVideos
+    @Observable private var _errorVideos:Error? = nil
+    lazy private(set) var errorVideos: ImmutableObservable<Error?> = __errorVideos
     
     private var movie:MovieModelProtocol?
     {
@@ -111,34 +111,34 @@ class MovieVM: MovieVMProtocol {
         }
     }
     
-    private var _hasDataUpdates:Observable<Bool> = Observable<Bool>(false)
-    lazy var hasDataUpdates: ImmutableObservable<Bool> = _hasDataUpdates
+    @Observable private var _hasDataUpdates:Bool = false
+    lazy private(set) var hasDataUpdates: ImmutableObservable<Bool> = __hasDataUpdates
     
-    private var _error:Observable<Error?> = Observable<Error?>(nil)
-    lazy var error: ImmutableObservable<Error?> = _error
+    @Observable private var _error:Error? = nil
+    lazy private(set) var error: ImmutableObservable<Error?> = __error
     
     private let dateformatter = DateFormatter(withFormat: "dd.MM.yyyy", locale: "en_US")
     
-    private var _networkActivity: Observable<Bool> = Observable<Bool>(false)
-    lazy var networkActivity: ImmutableObservable<Bool> = _networkActivity
+    @Observable private var _networkActivity: Bool = false
+    lazy private(set) var networkActivity: ImmutableObservable<Bool> = __networkActivity
     
-    private var _overview:Observable<String> = Observable<String>("")
-    lazy var overview: ImmutableObservable<String> = _overview
+    @Observable private var _overview:String = ""
+    lazy private(set) var overview: ImmutableObservable<String> = __overview
     
-    private var _title:Observable<String> = Observable<String>("")
-    lazy var title: ImmutableObservable<String> = _title
+    @Observable private var _title:String = ""
+    lazy private(set) var title: ImmutableObservable<String> = __title
     
-    private var _genre:Observable<String> = Observable<String>("")
-    lazy var genre: ImmutableObservable<String> = _genre
+    @Observable private var _genre:String = ""
+    lazy private(set) var genre: ImmutableObservable<String> = __genre
     
-    private var _releaseDate:Observable<String> = Observable<String>("")
-    lazy var releaseDate: ImmutableObservable<String> = _releaseDate
+    @Observable private var _releaseDate:String = ""
+    lazy private(set) var releaseDate: ImmutableObservable<String> = __releaseDate
     
-    private var _id:Observable<Int> = Observable<Int>(0)
-    lazy var id: ImmutableObservable<Int> = _id
+    @Observable private var _id:Int = 0
+    lazy private(set) var id: ImmutableObservable<Int> = __id
     
-    private var _bannerURl:Observable<URL?> = Observable<URL?>(nil)
-    lazy var bannerURl: ImmutableObservable<URL?> = _bannerURl
+    @Observable private var _bannerURl:URL? = nil
+    lazy private(set) var bannerURl: ImmutableObservable<URL?> = __bannerURl
    
     
     init(repository: MovieRepositoryProtocol = RemoteMovieRepository(), movie:MovieModelProtocol? = nil) {
@@ -148,44 +148,44 @@ class MovieVM: MovieVMProtocol {
     }
     
     func populateData() -> Void {
-        _overview.value = movie?.overview ?? ""
-        _title.value = movie?.title ?? ""
-        _genre.value = movie?.genres.map { $0.name }.joined(separator: ", ") ?? ""
-        _releaseDate.value = dateformatter.string(from: movie?.release_date ?? Date())
-        _id.value = movie?.id ?? 0
+        _overview = movie?.overview ?? ""
+        _title = movie?.title ?? ""
+        _genre = movie?.genres.map { $0.name }.joined(separator: ", ") ?? ""
+        _releaseDate = dateformatter.string(from: movie?.release_date ?? Date())
+        _id = movie?.id ?? 0
         if let url = movie?.backdrop_path {
-            _bannerURl.value = URL(string: AppConstants.shared.IMAGE_REPO_BASE_URL + url)
+            _bannerURl = URL(string: AppConstants.shared.IMAGE_REPO_BASE_URL + url)
         }
         else {
-            _bannerURl.value = nil
+            _bannerURl = nil
         }
-        self._hasDataUpdates.value = true
+        self._hasDataUpdates = true
     }
     
     func load() -> Void {
-        self._error.value = nil
-        if _networkActivity.value == false {
-            self._networkActivity.value = true
-            repository.getMovie(id:id.value) {[weak self] (result:Movie?, error) in
+        self._error = nil
+        if _networkActivity == false {
+            self._networkActivity = true
+            repository.getMovie(id:_id) {[weak self] (result:Movie?, error) in
                 if let result = result {
                     self?.movie = result
                 }
                 else if let error = error {
-                    self?._error.value = error
+                    self?._error = error
                 }
-                self?._networkActivity.value = false
+                self?._networkActivity = false
             }
         }
     }
     
     
     func loadVideos() -> Void {
-        let _ = repository.getVideos(id:id.value) {[weak self] (result, error) in
+        let _ = repository.getVideos(id:_id) {[weak self] (result, error) in
             if let result = result {
-                self?._videos.value = result.results
+                self?._videos = result.results
             }
             else if let error = error {
-                self?._errorVideos.value = error
+                self?._errorVideos = error
             }
         }
     }

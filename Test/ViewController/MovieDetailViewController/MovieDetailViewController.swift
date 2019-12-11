@@ -187,12 +187,12 @@ class MovieDetailViewController: UIViewController {
     
     @IBAction func watchTrailerAction(_ sender: Any) {
         self.coordinator?.showVideoPlayer()
-        if model.videos.value.count == 0 {
+        if model.videos.wrappedValue.count == 0 {
             model.loadVideos()
         }
         else
         {
-            proceedVideo(video: model.videos.value.first!)
+            proceedVideo(video: model.videos.wrappedValue.first!)
         }
     }
     

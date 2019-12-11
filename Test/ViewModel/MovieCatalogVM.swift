@@ -114,7 +114,7 @@ class MovieCatalogVM: MovieCatalogVMProtocol {
         didSet {
             movies.clean(andAppend: source) {[weak self] in
                 DispatchQueue.main.async {
-                    self?._moviesUpdated.value = true
+                    self?._moviesUpdated = true
                 }
             }
         }
@@ -122,15 +122,15 @@ class MovieCatalogVM: MovieCatalogVMProtocol {
     
     private var movies:ThreadSafeCollection<Movie> = ThreadSafeCollection<Movie>()
     
-    private var _moviesUpdated:Observable<Bool> = Observable<Bool>(false)
-    lazy var moviesUpdated: ImmutableObservable<Bool> = _moviesUpdated
+    @Observable private var _moviesUpdated:Bool = false
+    lazy private(set) var moviesUpdated: ImmutableObservable<Bool> = __moviesUpdated
     
-    private var _error:Observable<Error?> = Observable<Error?>(nil)
-    lazy var error: ImmutableObservable<Error?> = _error
+    @Observable private var _error:Error? = nil
+    lazy private(set) var error: ImmutableObservable<Error?> = __error
     
     
-    private var _networkActivity: Observable<Bool> = Observable<Bool>(false)
-    lazy var networkActivity: ImmutableObservable<Bool> = _networkActivity
+    @Observable private var _networkActivity: Bool = false
+    lazy private(set) var networkActivity: ImmutableObservable<Bool> = __networkActivity
     
     init(repository: MovieRepositoryProtocol = RemoteMovieRepository()) {
         self.repository = repository
@@ -147,9 +147,9 @@ class MovieCatalogVM: MovieCatalogVMProtocol {
     
     func load(page:Int) -> Void {
         
-        self._error.value = nil
-        if _networkActivity.value == false {
-            self._networkActivity.value = true
+        self._error = nil
+        if _networkActivity == false {
+            self._networkActivity = true
             repository.getPopular(page: page) {[weak self] (result:Pageable<Movie>?, error) in
                 if let result = result {
                     self?.throttleImages(movies: result.results)
@@ -159,9 +159,9 @@ class MovieCatalogVM: MovieCatalogVMProtocol {
                     self?.page = result.page
                 }
                 else if let error = error {
-                    self?._error.value = error
+                    self?._error = error
                 }
-                self?._networkActivity.value = false
+                self?._networkActivity = false
             }
         }
     }
@@ -181,14 +181,14 @@ class MovieCatalogVM: MovieCatalogVMProtocol {
         {
             self.movies.clean(andAppend: self.source.filter { $0.title.localizedCaseInsensitiveContains(filter) }) {[weak self] in
                 DispatchQueue.main.async {
-                    self?._moviesUpdated.value = true
+                    self?._moviesUpdated = true
                 }
             }
         }
         else {
             self.movies.clean(andAppend: self.source) { [weak self] in
                 DispatchQueue.main.async {
-                    self?._moviesUpdated.value = true
+                    self?._moviesUpdated = true
                 }
             }
         }
